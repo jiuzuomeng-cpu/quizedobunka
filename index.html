@@ -10,22 +10,29 @@
     padding: 10px;
     line-height: 1.6;
   }
-  .container {
+
+  /* 横3列レイアウト */
+  .row {
     display: flex;
-    flex-direction: column;
-    gap: 20px;
+    flex-direction: row;
+    gap: 10px;
+    margin-bottom: 20px;
   }
+
   .box {
+    flex: 1;
     border: 2px solid #ccc;
     padding: 10px;
     border-radius: 8px;
     min-height: 80px;
   }
+
   .title {
     font-size: 16px;
     font-weight: bold;
     margin-bottom: 8px;
   }
+
   .item {
     background: #f0f0f0;
     padding: 8px;
@@ -33,17 +40,21 @@
     border-radius: 6px;
     font-size: 16px;
   }
+
   .item:hover {
     background: #e0e0ff;
   }
+
   .selected {
     border-color: #66f !important;
   }
+
   .choices {
     display: flex;
     flex-direction: column;
     gap: 10px;
   }
+
   .result {
     font-size: 20px;
     font-weight: bold;
@@ -56,8 +67,8 @@
 
 <h1>江戸文化クイズ（タップ版）</h1>
 
-<div class="container">
-
+<!-- 横3列レイアウト -->
+<div class="row">
   <div id="eventsBox" class="box" data-value="">
     <div class="title">作品名</div>
   </div>
@@ -69,13 +80,12 @@
   <div id="timesBox" class="box" data-value="">
     <div class="title">時期</div>
   </div>
-
-  <h2>選択肢</h2>
-  <div id="choices" class="choices"></div>
-
-  <div id="result" class="result"></div>
-
 </div>
+
+<h2>選択肢</h2>
+<div id="choices" class="choices"></div>
+
+<div id="result" class="result"></div>
 
 <script>
 const data = [
