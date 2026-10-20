@@ -5,94 +5,104 @@
 <title>江戸文化クイズ（タップ版）</title>
 
 <style>
-  body {
-    font-size: 16px;
-    padding: 10px;
-    line-height: 1.6;
-  }
+  body { font-family: sans-serif; padding: 20px; }
 
-  /* 上の3つを横並びにする */
-  .row {
+  /* 上段：横3列 */
+  .top-row {
     display: flex;
-    flex-direction: row;
-    gap: 10px;
-    margin-bottom: 20px;
+    gap: 30px;
+    margin-bottom: 30px;
   }
 
   .box {
-    flex: 1;
     border: 2px solid #ccc;
     padding: 10px;
-    border-radius: 8px;
+    width: 200px;
     min-height: 80px;
-  }
-
-  .title {
-    font-size: 16px;
-    font-weight: bold;
-    margin-bottom: 8px;
-  }
-
-  /* 選択肢を横3列にする */
-  .choices {
-    display: flex;
-    flex-direction: row;
-    flex-wrap: wrap;
-    gap: 10px;
-  }
-
-  .item {
-    background: #f0f0f0;
-    padding: 8px;
-    border-radius: 6px;
-    font-size: 16px;
-    width: calc(33% - 10px);
-    box-sizing: border-box;
     text-align: center;
   }
 
-  .item:hover {
-    background: #e0e0ff;
+  .title {
+    font-weight: bold;
+    margin-bottom: 10px;
   }
 
-  .selected {
-    border-color: #66f !important;
+  /* 下段：横3列 */
+  .bottom-row {
+    display: flex;
+    gap: 30px;
   }
 
-  .result {
+  .choices {
+    width: 200px;
+  }
+
+  .item {
+    padding: 8px;
+    margin: 5px 0;
+    background: #eef;
+    border: 1px solid #99c;
+    cursor: pointer;
+    text-align: center;
+  }
+
+  .wrong {
+    border-color: red !important;
+    background: #fdd !important;
+  }
+
+  .correct {
+    border-color: green !important;
+    background: #d6ffd6 !important;
+  }
+
+  #result {
+    margin-top: 20px;
     font-size: 20px;
     font-weight: bold;
-    margin-top: 20px;
+  }
+
+  .add-area {
+    margin-bottom: 20px;
+  }
+
+  .selected-box {
+    border-color: #66f !important;
   }
 </style>
-
 </head>
 <body>
 
-<h1>江戸文化クイズ（タップ版）</h1>
+<h2>江戸文化クイズ（タップ版）</h2>
 
-<!-- 上の3つを横並び -->
-<div class="row">
-  <div id="eventsBox" class="box" data-value="">
-    <div class="title">作品名</div>
-  </div>
-
-  <div id="personsBox" class="box" data-value="">
-    <div class="title">作者</div>
-  </div>
-
-  <div id="timesBox" class="box" data-value="">
-    <div class="title">時期</div>
-  </div>
+<!-- ▼ 追加フォーム -->
+<div class="add-area">
+  <h3>選択肢を追加する</h3>
+  作品名：<input id="addEvent">
+  作者：<input id="addPerson">
+  時期：<input id="addTime">
+  <button onclick="addChoice()">追加</button>
 </div>
 
-<h2>選択肢</h2>
-<div id="choices" class="choices"></div>
+<!-- ▼ 上段：箱 -->
+<div class="top-row">
+  <div class="box" id="eventsBox"><div class="title">作品名</div></div>
+  <div class="box" id="personsBox"><div class="title">作者</div></div>
+  <div class="box" id="timesBox"><div class="title">時期</div></div>
+</div>
 
-<div id="result" class="result"></div>
+<!-- ▼ 下段：選択肢 -->
+<div class="bottom-row">
+  <div class="choices" id="eventsChoices"></div>
+  <div class="choices" id="personsChoices"></div>
+  <div class="choices" id="timesChoices"></div>
+</div>
+
+<div id="result"></div>
 
 <script>
-const data = [
+// ▼ 江戸文化クイズのデータ
+let data = [
   { event: "東海道中膝栗毛", person: "十返舎一九", time: "化政文化" },
   { event: "南総里見八犬伝", person: "曲亭馬琴", time: "化政文化" },
   { event: "雨月物語", person: "上田秋成", time: "化政文化" },
@@ -105,75 +115,204 @@ const data = [
   { event: "大日本史編纂", person: "水戸光圀", time: "元禄文化" }
 ];
 
+// ▼ 選択肢（内部データ）
+let eventChoices = data.map(d => d.event);
+let personChoices = [...new Set(data.map(d => d.person))];
+let timeChoices = [...new Set(data.map(d => d.time))];
+
 let selectedBox = null;
 
+// ▼ 箱タップ選択
 function enableTapSelect(box, type) {
   box.addEventListener("click", () => {
-    if (selectedBox) selectedBox.box.classList.remove("selected");
-    selectedBox = { box, type };
-    box.classList.add("selected");
+    if (selectedBox) selectedBox.classList.remove("selected-box");
+    selectedBox = box;
+    selectedBox.dataset.type = type;
+    selectedBox.classList.add("selected-box");
   });
 }
 
+// ▼ 選択肢タップ
 function makeTappable(item, type, value) {
   item.addEventListener("click", () => {
     if (!selectedBox) return;
-    if (selectedBox.type !== type) return;
+    if (selectedBox.dataset.type !== type) return;
 
-    selectedBox.box.dataset.value = value;
-    selectedBox.box.innerHTML =
-      `<div class="title">${selectedBox.box.querySelector(".title").textContent}</div>
+    selectedBox.dataset.value = value;
+    selectedBox.innerHTML =
+      `<div class="title">${selectedBox.querySelector(".title").textContent}</div>
        <div class="item">${value}</div>`;
 
-    selectedBox.box.classList.remove("selected");
+    selectedBox.classList.remove("selected-box");
     selectedBox = null;
 
     checkAnswer();
   });
 }
 
+// ▼ ○○Bの残り○○A数
+function countRemainingWorks(person) {
+  return eventChoices.filter(event => {
+    const d = data.find(x => x.event === event);
+    return d && d.person === person;
+  }).length;
+}
+
+// ▼ 正解判定
 function checkAnswer() {
-  const e = document.getElementById("eventsBox").dataset.value;
-  const p = document.getElementById("personsBox").dataset.value;
-  const t = document.getElementById("timesBox").dataset.value;
+  const e = eventsBox.dataset.value;
+  const p = personsBox.dataset.value;
+  const t = timesBox.dataset.value;
 
   if (!e || !p || !t) return;
 
-  const correct = data.find(d => d.event === e);
+  const ok = data.find(d => d.event === e && d.person === p && d.time === t);
 
-  if (correct.person === p && correct.time === t) {
-    document.getElementById("result").textContent = "正解！";
+  if (ok) {
+    result.textContent = "正解！";
+
+    eventsBox.classList.add("correct");
+    personsBox.classList.add("correct");
+    timesBox.classList.add("correct");
+
+    removeChoice(eventsChoicesDiv, e);
+
+    const remaining = countRemainingWorks(p);
+
+    if (remaining === 0) {
+      removeChoice(personsChoicesDiv, p);
+    } else {
+      const exists = [...personsChoicesDiv.children].some(item => item.textContent === p);
+      if (!exists) {
+        const item = document.createElement("div");
+        item.className = "item";
+        item.textContent = p;
+        makeTappable(item, "person", p);
+        personsChoicesDiv.appendChild(item);
+      }
+    }
+
+    setTimeout(() => {
+      resetBoxes();
+      result.textContent = "";
+    }, 1200);
+
+    checkClear();
   } else {
-    document.getElementById("result").textContent = "不正解…";
+    result.textContent = "不正解";
+
+    eventsBox.classList.add("wrong");
+    personsBox.classList.add("wrong");
+    timesBox.classList.add("wrong");
+
+    setTimeout(() => {
+      resetBoxes();
+      result.textContent = "";
+    }, 1200);
   }
 }
 
-function init() {
-  const choices = document.getElementById("choices");
+// ▼ クリア判定
+function checkClear() {
+  const noEvents = eventsChoicesDiv.children.length === 0;
+  const noPersons = personsChoicesDiv.children.length === 0;
 
-  data.forEach(d => {
-    const e = document.createElement("div");
-    e.className = "item";
-    e.textContent = d.event;
-    makeTappable(e, "event", d.event);
-    choices.appendChild(e);
+  if (noEvents && noPersons) {
+    result.textContent = "クリア！";
 
-    const p = document.createElement("div");
-    p.className = "item";
-    p.textContent = d.person;
-    makeTappable(p, "person", d.person);
-    choices.appendChild(p);
+    setTimeout(() => {
+      eventChoices = data.map(d => d.event);
+      personChoices = [...new Set(data.map(d => d.person))];
+      timeChoices = [...new Set(data.map(d => d.time))];
 
-    const t = document.createElement("div");
-    t.className = "item";
-    t.textContent = d.time;
-    makeTappable(t, "time", d.time);
-    choices.appendChild(t);
+      init();
+      result.textContent = "";
+    }, 1500);
+  }
+}
+
+// ▼ 選択肢削除
+function removeChoice(column, value) {
+  [...column.children].forEach(item => {
+    if (item.textContent === value) item.remove();
   });
 
-  enableTapSelect(document.getElementById("eventsBox"), "event");
-  enableTapSelect(document.getElementById("personsBox"), "person");
-  enableTapSelect(document.getElementById("timesBox"), "time");
+  eventChoices = eventChoices.filter(ev => ev !== value);
+
+  personChoices = [...new Set(
+    eventChoices.map(ev => {
+      const d = data.find(x => x.event === ev);
+      return d ? d.person : null;
+    })
+  )];
+}
+
+// ▼ 箱リセット
+function resetBoxes() {
+  ["eventsBox", "personsBox", "timesBox"].forEach(id => {
+    const box = document.getElementById(id);
+    box.dataset.value = "";
+    box.classList.remove("wrong");
+    box.classList.remove("correct");
+    box.innerHTML = `<div class="title">${box.querySelector(".title").textContent}</div>`;
+  });
+}
+
+// ▼ 選択肢追加
+function addChoice() {
+  const e = document.getElementById("addEvent").value;
+  const p = document.getElementById("addPerson").value;
+  const t = document.getElementById("addTime").value;
+
+  if (!e || !p || !t) {
+    alert("3つすべて入力してください");
+    return;
+  }
+
+  data.push({ event: e, person: p, time: t });
+
+  eventChoices.push(e);
+  personChoices.push(p);
+  timeChoices.push(t);
+
+  init();
+}
+
+// ▼ 初期化
+function init() {
+  resetBoxes();
+
+  eventsChoicesDiv.innerHTML = "";
+  personsChoicesDiv.innerHTML = "";
+  timesChoicesDiv.innerHTML = "";
+
+  eventChoices.forEach(e => {
+    const item = document.createElement("div");
+    item.className = "item";
+    item.textContent = e;
+    makeTappable(item, "event", e);
+    eventsChoicesDiv.appendChild(item);
+  });
+
+  [...new Set(personChoices)].forEach(p => {
+    const item = document.createElement("div");
+    item.className = "item";
+    item.textContent = p;
+    makeTappable(item, "person", p);
+    personsChoicesDiv.appendChild(item);
+  });
+
+  timeChoices.forEach(t => {
+    const item = document.createElement("div");
+    item.className = "item";
+    item.textContent = t;
+    makeTappable(item, "time", t);
+    timesChoicesDiv.appendChild(item);
+  });
+
+  enableTapSelect(eventsBox, "event");
+  enableTapSelect(personsBox, "person");
+  enableTapSelect(timesBox, "time");
 }
 
 init();
