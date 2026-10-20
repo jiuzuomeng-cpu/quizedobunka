@@ -11,7 +11,7 @@
     line-height: 1.6;
   }
 
-  /* 横3列レイアウト */
+  /* 上の3つを横並びにする */
   .row {
     display: flex;
     flex-direction: row;
@@ -33,12 +33,22 @@
     margin-bottom: 8px;
   }
 
+  /* 選択肢を横3列にする */
+  .choices {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
   .item {
     background: #f0f0f0;
     padding: 8px;
-    margin: 6px 0;
     border-radius: 6px;
     font-size: 16px;
+    width: calc(33% - 10px); /* 横3列 */
+    box-sizing: border-box;
+    text-align: center;
   }
 
   .item:hover {
@@ -47,12 +57,6 @@
 
   .selected {
     border-color: #66f !important;
-  }
-
-  .choices {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
   }
 
   .result {
