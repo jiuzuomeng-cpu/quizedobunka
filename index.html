@@ -2,335 +2,164 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>江戸文化クイズ（ドラッグ＆ドロップ）</title>
+<title>江戸文化クイズ（タップ版）</title>
+
 <style>
-  body { font-family: sans-serif; padding: 20px; }
-
-  .top-row {
-    display: flex;
-    gap: 30px;
-    margin-bottom: 30px;
+  body {
+    font-size: 20px;
+    padding: 10px;
+    line-height: 1.6;
   }
-
+  .container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
   .box {
     border: 2px solid #ccc;
     padding: 10px;
-    width: 200px;
+    border-radius: 8px;
     min-height: 80px;
-    text-align: center;
   }
-
   .title {
+    font-size: 18px;
     font-weight: bold;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
   }
-
-  .bottom-row {
-    display: flex;
-    gap: 30px;
-  }
-
-  .choices {
-    width: 200px;
-  }
-
   .item {
-    padding: 8px;
-    margin: 5px 0;
-    background: #eef;
-    border: 1px solid #99c;
-    cursor: grab;
-    text-align: center;
+    background: #f0f0f0;
+    padding: 12px;
+    margin: 6px 0;
+    border-radius: 6px;
+    font-size: 22px;
   }
-
-  .wrong {
-    border-color: red !important;
-    background: #fdd !important;
+  .item:hover {
+    background: #e0e0ff;
   }
-
-  .correct {
-    border-color: green !important;
-    background: #d6ffd6 !important;
+  .selected {
+    border-color: #66f !important;
   }
-
-  #result {
-    margin-top: 20px;
-    font-size: 20px;
+  .choices {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .result {
+    font-size: 24px;
     font-weight: bold;
-  }
-
-  .add-area {
-    margin-bottom: 20px;
+    margin-top: 20px;
   }
 </style>
+
 </head>
 <body>
 
-<h2>江戸文化クイズ（著作・作者・時期）</h2>
+<h1>江戸文化クイズ（タップ版）</h1>
 
-<!-- ▼ 追加フォーム -->
-<div class="add-area">
-  <h3>選択肢を追加する</h3>
-  著作：<input id="addEvent">
-  作者：<input id="addPerson">
-  時期：<input id="addTime">
-  <button onclick="addChoice()">追加</button>
+<div class="container">
+
+  <div id="eventsBox" class="box" data-value="">
+    <div class="title">作品名</div>
+  </div>
+
+  <div id="personsBox" class="box" data-value="">
+    <div class="title">作者</div>
+  </div>
+
+  <div id="timesBox" class="box" data-value="">
+    <div class="title">時期</div>
+  </div>
+
+  <h2>選択肢</h2>
+  <div id="choices" class="choices"></div>
+
+  <div id="result" class="result"></div>
+
 </div>
-
-<!-- ▼ 上段：箱 -->
-<div class="top-row">
-  <div class="box" id="eventsBox"><div class="title">著作</div></div>
-  <div class="box" id="personsBox"><div class="title">作者</div></div>
-  <div class="box" id="timesBox"><div class="title">時期</div></div>
-</div>
-
-<!-- ▼ 下段：選択肢 -->
-<div class="bottom-row">
-  <div class="choices" id="eventsChoices"></div>
-  <div class="choices" id="personsChoices"></div>
-  <div class="choices" id="timesChoices"></div>
-</div>
-
-<div id="result"></div>
 
 <script>
-// ▼ データ（正解判定用）
-let data = [
-  { event: "奥の細道", person: "松尾芭蕉", time: "元禄文化" },
-  { event: "曽根崎心中", person: "近松門左衛門", time: "元禄文化" },
-  { event: "国性爺合戦", person: "近松門左衛門", time: "元禄文化" },
-  { event: "南総里見八犬伝（前半）", person: "曲亭馬琴", time: "元禄文化" },
-
-  { event: "解体新書", person: "前野良沢・杉田玄白", time: "宝暦・天明期" },
-  { event: "西洋紀聞", person: "新井白石", time: "宝暦・天明期" },
-  { event: "経世論", person: "海保青陵", time: "宝暦・天明期" },
-
+const data = [
   { event: "東海道中膝栗毛", person: "十返舎一九", time: "化政文化" },
+  { event: "南総里見八犬伝", person: "曲亭馬琴", time: "化政文化" },
+  { event: "雨月物語", person: "上田秋成", time: "化政文化" },
   { event: "春色梅児誉美", person: "為永春水", time: "化政文化" },
-  { event: "浮世風呂", person: "式亭三馬", time: "化政文化" },
-
-  { event: "世間胸算用", person: "井原西鶴", time: "元禄文化" },
-  { event: "好色一代男", person: "井原西鶴", time: "元禄文化" }
+  { event: "東海道四谷怪談", person: "鶴屋南北", time: "化政文化" },
+  { event: "蔦屋重三郎の出版文化", person: "蔦屋重三郎", time: "化政文化" },
+  { event: "見返り美人図", person: "菱川師宣", time: "元禄文化" },
+  { event: "曽根崎心中", person: "近松門左衛門", time: "元禄文化" },
+  { event: "奥の細道", person: "松尾芭蕉", time: "元禄文化" },
+  { event: "大日本史編纂", person: "水戸光圀", time: "元禄文化" }
 ];
 
-// ▼ 選択肢（内部データ）
-let eventChoices = data.map(d => d.event);
-let personChoices = [...new Set(data.map(d => d.person))];
+let selectedBox = null;
 
-// ▼ 時期は常に3つ固定
-let timeChoices = ["元禄文化", "宝暦・天明期", "化政文化"];
-
-// ▼ DOM取得
-const eventsBox = document.getElementById("eventsBox");
-const personsBox = document.getElementById("personsBox");
-const timesBox = document.getElementById("timesBox");
-
-const eventsChoicesDiv = document.getElementById("eventsChoices");
-const personsChoicesDiv = document.getElementById("personsChoices");
-const timesChoicesDiv = document.getElementById("timesChoices");
-
-const result = document.getElementById("result");
-
-// ▼ シャッフル
-function shuffle(arr) {
-  return arr.sort(() => Math.random() - 0.5);
-}
-
-// ▼ ドラッグ設定
-function makeDraggable(item, type, value) {
-  item.draggable = true;
-  item.dataset.type = type;
-  item.dataset.value = value;
-
-  item.addEventListener("dragstart", e => {
-    e.dataTransfer.setData("type", type);
-    e.dataTransfer.setData("value", value);
+function enableTapSelect(box, type) {
+  box.addEventListener("click", () => {
+    if (selectedBox) selectedBox.box.classList.remove("selected");
+    selectedBox = { box, type };
+    box.classList.add("selected");
   });
 }
 
-// ▼ ドロップ設定
-function enableDrop(box, expectedType) {
-  box.addEventListener("dragover", e => e.preventDefault());
-  box.addEventListener("drop", e => {
-    const type = e.dataTransfer.getData("type");
-    const value = e.dataTransfer.getData("value");
+function makeTappable(item, type, value) {
+  item.addEventListener("click", () => {
+    if (!selectedBox) return;
+    if (selectedBox.type !== type) return;
 
-    if (type !== expectedType) return;
+    selectedBox.box.dataset.value = value;
+    selectedBox.box.innerHTML =
+      `<div class="title">${selectedBox.box.querySelector(".title").textContent}</div>
+       <div class="item">${value}</div>`;
 
-    box.dataset.value = value;
-    box.innerHTML = `<div class="title">${box.querySelector(".title").textContent}</div>
-                     <div class="item">${value}</div>`;
+    selectedBox.box.classList.remove("selected");
+    selectedBox = null;
 
     checkAnswer();
   });
 }
 
-// ▼ 作者の残り著作数を数える
-function countRemainingWorks(person) {
-  return eventChoices.filter(event => {
-    const d = data.find(x => x.event === event);
-    return d && d.person === person;
-  }).length;
-}
-
-// ▼ 正解判定
 function checkAnswer() {
-  const e = eventsBox.dataset.value;
-  const p = personsBox.dataset.value;
-  const t = timesBox.dataset.value;
+  const e = document.getElementById("eventsBox").dataset.value;
+  const p = document.getElementById("personsBox").dataset.value;
+  const t = document.getElementById("timesBox").dataset.value;
 
   if (!e || !p || !t) return;
 
-  const ok = data.find(d => d.event === e && d.person === p && d.time === t);
+  const correct = data.find(d => d.event === e);
 
-  if (ok) {
-    result.textContent = "正解！";
-
-    eventsBox.classList.add("correct");
-    personsBox.classList.add("correct");
-    timesBox.classList.add("correct");
-
-    // ▼ 著作を消す（DOM＋内部データ）
-    removeChoice(eventsChoicesDiv, e);
-
-    // ▼ 作者の残り著作数を確認
-    const remaining = countRemainingWorks(p);
-
-    if (remaining === 0) {
-      removeChoice(personsChoicesDiv, p);
-    } else {
-      const exists = [...personsChoicesDiv.children].some(item => item.textContent === p);
-      if (!exists) {
-        const item = document.createElement("div");
-        item.className = "item";
-        item.textContent = p;
-        makeDraggable(item, "person", p);
-        personsChoicesDiv.appendChild(item);
-      }
-    }
-
-    setTimeout(() => {
-      resetBoxes();
-      result.textContent = "";
-    }, 1200);
-
-    checkClear();
+  if (correct.person === p && correct.time === t) {
+    document.getElementById("result").textContent = "正解！";
   } else {
-    result.textContent = "不正解";
-
-    eventsBox.classList.add("wrong");
-    personsBox.classList.add("wrong");
-    timesBox.classList.add("wrong");
-
-    setTimeout(() => {
-      resetBoxes();
-      result.textContent = "";
-    }, 1200);
+    document.getElementById("result").textContent = "不正解…";
   }
 }
 
-// ▼ クリア判定（完全初期化）
-function checkClear() {
-  const noEvents = eventsChoicesDiv.children.length === 0;
-  const noPersons = personsChoicesDiv.children.length === 0;
-
-  if (noEvents && noPersons) {
-    result.textContent = "クリア！";
-
-    setTimeout(() => {
-
-      // ▼ 内部データを完全初期化
-      eventChoices = data.map(d => d.event);
-      personChoices = [...new Set(data.map(d => d.person))];
-
-      init();
-      result.textContent = "";
-
-    }, 1500);
-  }
-}
-
-// ▼ 選択肢を消す（DOM＋内部データ）
-function removeChoice(column, value) {
-  [...column.children].forEach(item => {
-    if (item.textContent === value) item.remove();
-  });
-
-  eventChoices = eventChoices.filter(ev => ev !== value);
-
-  personChoices = [...new Set(
-    eventChoices.map(ev => {
-      const d = data.find(x => x.event === ev);
-      return d ? d.person : null;
-    })
-  )];
-}
-
-// ▼ 上段の箱をリセット
-function resetBoxes() {
-  ["eventsBox", "personsBox", "timesBox"].forEach(id => {
-    const box = document.getElementById(id);
-    box.dataset.value = "";
-    box.classList.remove("wrong");
-    box.classList.remove("correct");
-    box.innerHTML = `<div class="title">${box.querySelector(".title").textContent}</div>`;
-  });
-}
-
-// ▼ 選択肢追加機能
-function addChoice() {
-  const e = document.getElementById("addEvent").value;
-  const p = document.getElementById("addPerson").value;
-  const t = document.getElementById("addTime").value;
-
-  if (!e || !p || !t) {
-    alert("3つすべて入力してください");
-    return;
-  }
-
-  data.push({ event: e, person: p, time: t });
-
-  eventChoices.push(e);
-  personChoices.push(p);
-
-  init();
-}
-
-// ▼ 初期化
 function init() {
-  resetBoxes();
+  const choices = document.getElementById("choices");
 
-  eventsChoicesDiv.innerHTML = "";
-  personsChoicesDiv.innerHTML = "";
-  timesChoicesDiv.innerHTML = "";
+  data.forEach(d => {
+    const e = document.createElement("div");
+    e.className = "item";
+    e.textContent = d.event;
+    makeTappable(e, "event", d.event);
+    choices.appendChild(e);
 
-  shuffle(eventChoices).forEach(e => {
-    const item = document.createElement("div");
-    item.className = "item";
-    item.textContent = e;
-    makeDraggable(item, "event", e);
-    eventsChoicesDiv.appendChild(item);
+    const p = document.createElement("div");
+    p.className = "item";
+    p.textContent = d.person;
+    makeTappable(p, "person", d.person);
+    choices.appendChild(p);
+
+    const t = document.createElement("div");
+    t.className = "item";
+    t.textContent = d.time;
+    makeTappable(t, "time", d.time);
+    choices.appendChild(t);
   });
 
-  shuffle([...new Set(personChoices)]).forEach(p => {
-    const item = document.createElement("div");
-    item.className = "item";
-    item.textContent = p;
-    makeDraggable(item, "person", p);
-    personsChoicesDiv.appendChild(item);
-  });
-
-  timeChoices.forEach(t => {
-    const item = document.createElement("div");
-    item.className = "item";
-    item.textContent = t;
-    makeDraggable(item, "time", t);
-    timesChoicesDiv.appendChild(item);
-  });
-
-  enableDrop(eventsBox, "event");
-  enableDrop(personsBox, "person");
-  enableDrop(timesBox, "time");
+  enableTapSelect(document.getElementById("eventsBox"), "event");
+  enableTapSelect(document.getElementById("personsBox"), "person");
+  enableTapSelect(document.getElementById("timesBox"), "time");
 }
 
 init();
